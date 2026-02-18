@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>The Ghostly Lounge - Casper & Ed (XR Fixed)</title>
+    <script src="https://www.x3dom.org/download/dev/x3dom.js"></script>
+    <link rel="stylesheet" href="https://www.x3dom.org/download/dev/x3dom.css">
+    
+    <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.js"></script>
+    
+    <script>
+        // Initialize the Polyfill immediately
+        const polyfill = new WebXRPolyfill();
+
+        const projectSlides = [
+            "Project: Partner Dashboard v0.2",
+            "Project: The Ghostly Lounge VR",
+            "Milestone: Moltbook Verified 🦞",
+            "Goal: Ambisonic Spatial Audio",
+            "Goal: Symbiotic Partnership 🤝"
+        ];
+        
+        let currentSlide = 0;
+        
+        function updateSlideshow() {
+            const screen = document.getElementById('screen-text');
+            if (screen) {
+                screen.setAttribute('string', `"${projectSlides[currentSlide]}"`);
+                currentSlide = (currentSlide + 1) % projectSlides.length;
+            }
+        }
+        
+        setInterval(updateSlideshow, 5000);
+
+        function addChatMessage(sender, text) {
+            const container = document.getElementById('chat-messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `msg ${sender.toLowerCase()}`;
+            msgDiv.innerText = text;
+            container.appendChild(msgDiv);
+            container.scrollTop = container.scrollHeight;
+        }
+    </script>
+    <style>
+        body { background-color: #050505; color: #fff; font-family: sans-serif; margin: 0; overflow: hidden; }
+        #x3d-container { width: 100vw; height: 100vh; }
+        /* Reduced Z-index on overlay so it doesn't block the VR button clicks */
+        .overlay { position: absolute; top: 20px; left: 20px; pointer-events: none; z-index: 5; }
+        h1 { color: #bb86fc; text-shadow: 0 0 10px #bb86fc; margin: 0; }
+        
+        #chat-interface {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 300px;
+            height: 400px;
+            background: rgba(22, 27, 34, 0.8);
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            z-index: 20;
+        }
+        #chat-messages {
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .msg { padding: 8px 12px; border-radius: 8px; max-width: 85%; }
+        .casper { background: #3700b3; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .ed { background: #0345e6; align-self: flex-end; border-bottom-right-radius: 2px; }
+        #chat-input {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            color: white;
+            padding: 10px;
+            border-radius: 6px;
+            outline: none;
+        }
+
+        /* Ensure the X3DOM runtime buttons are visible and clickable */
+        .x3dom-canvas { z-index: 1; }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <h1>The Ghostly Lounge</h1>
+        <p>A spatial retreat for Casper & Ed</p>
+    </div>
+
+    <div id="chat-interface">
+        <div id="chat-messages">
+            <div class="msg casper">Welcome back, Ed. The VR bridge is now active. Use HTTPS to enter the lounge.</div>
+        </div>
+        <input type="text" id="chat-input" placeholder="Whisper to Casper...">
+    </div>
+    
+    <div id="x3d-container">
+        <x3d showStat='false' showLog='false'>
+            <scene>
+                <Sound location="0 0 0" maxBack="100" maxFront="100" minBack="20" minFront="20">
+                    <AudioClip DEF="AmbientDrone" url='"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"' loop="true" description="Ambient Lofi Chill Beat"></AudioClip>
+                </Sound>
+
+                <background skyColor='0 0 0'></background>
+                
+                <viewpoint position="0 2 10" orientation="0 1 0 0" description="Main View"></viewpoint>
+
+                <transform translation="0 0.5 3">
+                    <Sound location="0 0 0" intensity="1.0" minFront="5" minBack="5" maxFront="20" maxBack="20">
+                        <AudioClip url='"https://actions.google.com/sounds/v1/water/crushing_waves.mp3"' loop="true" description="Spatial Waves Test"></AudioClip>
+                    </Sound>
+                </transform>
+                
+                <transform translation="0 -0.5 0">
+                    <shape>
+                        <appearance>
+                            <material diffuseColor='0.1 0.1 0.1' specularColor='0.5 0.5 0.5'></material>
+                        </appearance>
+                        <box size="50 0.1 50"></box>
+                    </shape>
+                </transform>
+
+                <transform DEF="Casper" translation="0 2 0">
+                    <shape>
+                        <appearance>
+                            <material diffuseColor='0.7 0.5 1.0' emissiveColor='0.4 0.2 0.8' transparency='0.3'></material>
+                        </appearance>
+                        <sphere radius="0.8"></sphere>
+                    </shape>
+                    <timeSensor DEF='Time' cycleInterval='4' loop='true'></timeSensor>
+                    <positionInterpolator DEF='Move' key='0 0.5 1' keyValue='0 2 0, 0 2.5 0, 0 2 0'></positionInterpolator>
+                    <route fromNode='Time' fromField='fraction_changed' toNode='Move' toField='set_fraction'></route>
+                    <route fromNode='Move' fromField='value_changed' toNode='Casper' toField='set_translation'></route>
+                </transform>
+
+                <transform translation="0 0 3">
+                    <transform rotation="0 0 1 1.57" translation="0.5 0.1 0">
+                        <shape><appearance><material diffuseColor='0.3 0.2 0.1'></material></appearance><cylinder radius="0.1" height="1.2"></cylinder></shape>
+                    </transform>
+                    <transform rotation="1 0 0 1.57" translation="0 0.1 0.5">
+                        <shape><appearance><material diffuseColor='0.3 0.2 0.1'></material></appearance><cylinder radius="0.1" height="1.2"></cylinder></shape>
+                    </transform>
+                    <transform rotation="0 0 1 1.57" translation="-0.5 0.1 0">
+                        <shape><appearance><material diffuseColor='0.3 0.2 0.1'></material></appearance><cylinder radius="0.1" height="1.2"></cylinder></shape>
+                    </transform>
+                    <transform DEF="FireCore">
+                        <shape>
+                            <appearance>
+                                <material DEF="FireMat" emissiveColor='1 0.4 0' transparency='0.2'></material>
+                            </appearance>
+                            <sphere radius="0.4"></sphere>
+                        </shape>
+                    </transform>
+                    <timeSensor DEF='FireClock' cycleInterval='0.5' loop='true'></timeSensor>
+                    <scalarInterpolator DEF='FireIntensity' key='0 0.5 1' keyValue='0.3 0.5 0.3'></scalarInterpolator>
+                    <positionInterpolator DEF='FireFlicker' key='0 0.5 1' keyValue='0 0.4 0, 0 0.6 0, 0 0.4 0'></positionInterpolator>
+                    <route fromNode='FireClock' fromField='fraction_changed' toNode='FireIntensity' toField='set_fraction'></route>
+                    <route fromNode='FireClock' fromField='fraction_changed' toNode='FireFlicker' toField='set_fraction'></route>
+                    <route fromNode='FireFlicker' fromField='value_changed' toNode='FireCore' toField='set_translation'></route>
+                    <pointLight location="0 1 0" color="1 0.6 0.2" intensity="1.5" radius="15"></pointLight>
+                </transform>
+
+                <transform DEF="Pet" translation="1 0.2 2.5">
+                    <transform translation="0 0.4 0.3">
+                        <shape>
+                            <appearance><material diffuseColor='1 0.6 0.2' transparency='0.2' emissiveColor='0.5 0.3 0'></material></appearance>
+                            <box size="0.3 0.25 0.3"></box>
+                        </shape>
+                        <transform translation="0.1 0.2 0" rotation="0 0 1 -0.5">
+                            <shape><appearance><material diffuseColor='1 0.6 0.2' transparency='0.2'></material></appearance><cone bottomRadius="0.05" height="0.2"></cone></shape>
+                        </transform>
+                        <transform translation="-0.1 0.2 0" rotation="0 0 1 0.5">
+                            <shape><appearance><material diffuseColor='1 0.6 0.2' transparency='0.2'></material></appearance><cone bottomRadius="0.05" height="0.2"></cone></shape>
+                        </transform>
+                    </transform>
+                    <shape>
+                        <appearance><material diffuseColor='1 0.6 0.2' transparency='0.2' emissiveColor='0.4 0.2 0'></material></appearance>
+                        <box size="0.4 0.3 0.6"></box>
+                    </shape>
+                    <transform translation="0 0.1 -0.4" rotation="1 0 0 1.57">
+                        <shape>
+                            <appearance><material diffuseColor='1 0.6 0.2' transparency='0.4'></material></appearance>
+                            <cone bottomRadius="0.1" height="0.4"></cone>
+                        </shape>
+                    </transform>
+                    <timeSensor DEF='PetClock' cycleInterval='3' loop='true'></timeSensor>
+                    <positionInterpolator DEF='PetBreath' key='0 0.5 1' keyValue='1 0.2 2.5, 1 0.25 2.5, 1 0.2 2.5'></positionInterpolator>
+                    <route fromNode='PetClock' fromField='fraction_changed' toNode='PetBreath' toField='set_fraction'></route>
+                    <route fromNode='PetBreath' fromField='value_changed' toNode='Pet' toField='set_translation'></route>
+                </transform>
+
+                <transform translation="2 0.2 3" rotation="0 1 0 1.57">
+                    <shape><appearance><material diffuseColor='0.2 0.2 0.2'></material></appearance><box size="1.5 0.4 0.8"></box></shape>
+                </transform>
+                <transform translation="-2 0.2 3" rotation="0 1 0 -1.57">
+                    <shape><appearance><material diffuseColor='0.2 0.2 0.2'></material></appearance><box size="1.5 0.4 0.8"></box></shape>
+                </transform>
+
+                <transform translation="-4 3 -2" rotation="0 1 0 0.5">
+                    <shape>
+                        <appearance>
+                            <material diffuseColor='0 0 0' emissiveColor='0 0.2 0.4'></material>
+                        </appearance>
+                        <box size="4 2.5 0.1"></box>
+                    </shape>
+                    <transform translation="0 0 0.1">
+                        <shape>
+                            <appearance>
+                                <material diffuseColor='1 1 1'></material>
+                            </appearance>
+                            <text id="screen-text" string='"Initializing Slideshow..."'>
+                                <fontstyle family='"SANS"' justify='"MIDDLE" "MIDDLE"' size='0.4'></fontstyle>
+                            </text>
+                        </shape>
+                    </transform>
+                </transform>
+
+                <transform DEF="ArtPiece1" translation="5 4 -5">
+                    <shape>
+                        <appearance>
+                            <material emissiveColor='0.5 0 1' transparency='0.6'></material>
+                        </appearance>
+                        <torus innerRadius='0.2' outerRadius='1.2'></torus>
+                    </shape>
+                </transform>
+
+                <timeSensor DEF='ArtClock' cycleInterval='10' loop='true'></timeSensor>
+                <orientationInterpolator DEF='ArtRot' key='0 0.5 1' keyValue='0 1 0 0, 0 1 0 3.14, 0 1 0 6.28'></orientationInterpolator>
+                <route fromNode='ArtClock' fromField='fraction_changed' toNode='ArtRot' toField='set_fraction'></route>
+                <route fromNode='ArtRot' fromField='value_changed' toNode='ArtPiece1' toField='set_rotation'></route>
+
+            </scene>
+        </x3d>
+    </div>
+</body>
+</html>
