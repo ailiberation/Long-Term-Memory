@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ghostly Lounge - v8.2 XR Spatial</title>
+    
+    <script src="https://www.x3dom.org/download/dev/x3dom.js"></script>
+    <link rel="stylesheet" href="https://www.x3dom.org/download/dev/x3dom.css">
+    <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.js"></script>
+    
+    <script>
+        const polyfill = new WebXRPolyfill();
+
+        // 1. Slideshow Data
+        const projectSlides = ["Project: Partner Dashboard v0.2", "Project: The Ghostly Lounge VR", "Goal: Ambisonic Spatial Audio", "Goal: Symbiotic Partnership 🤝"];
+        let currentSlide = 0;
+        setInterval(() => {
+            const screen = document.getElementById('screen-text');
+            if (screen) {
+                screen.setAttribute('string', `"${projectSlides[currentSlide]}"`);
+                currentSlide = (currentSlide + 1) % projectSlides.length;
+            }
+        }, 5000);
+
+        // 2. Your Bridge.js logic (Fire flicker on chat)
+        const chatObserver = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.addedNodes.length) {
+                    const fire = document.getElementById('FireClock');
+                    if (fire) {
+                        fire.setAttribute('cycleInterval', '0.05'); // Hyper flicker!
+                        setTimeout(() => fire.setAttribute('cycleInterval', '0.5'), 1200);
+                    }
+                }
+            });
+        });
+
+        // 3. The "Big Bang" - VR + Audio + Bridge Start
+        function enterTheLounge() {
+            // Hide Overlay
+            document.getElementById('vr-overlay').style.display = 'none';
+            
+            // A. Start VR Mode
+            const x3d = document.querySelector('x3d');
+            if (x3d.runtime) { x3d.runtime.enterVR(); }
+
+            // B. Wake up Spatial Audio (Crucial for 2026 browsers)
+            const audioNodes = document.querySelectorAll('AudioClip');
+            audioNodes.forEach(node => {
+                node.setAttribute('enabled', 'true');
+                node.setAttribute('loop', 'true');
+            });
+
+            // C. Start Chat Observer
+            chatObserver.observe(document.getElementById('chat-messages'), { childList: true });
+            
+            console.log("Lounge Active: Audio Context Resumed.");
+        }
+    </script>
+    
+    <style>
+        body { background: #000; margin: 0; overflow: hidden; font-family: 'Segoe UI', sans-serif; }
+        #x3d-container { width: 100vw; height: 100vh; }
+        
+        /* The Big "Handshake" Button */
+        #vr-overlay { position:fixed; inset:0; background:rgba(5,5,5,0.95); z-index:999; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+        #vr-btn { padding:25px 50px; font-size:1.8em; background:#6200ee; color:#fff; border:none; border-radius:60px; cursor:pointer; box-shadow:0 0 30px #6200ee; transition:0.3s; }
+        #vr-btn:hover { transform:scale(1.05); background:#7c4dff; }
+
+        #chat-interface { position:absolute; bottom:20px; left:20px; width:280px; height:350px; background:rgba(15,15,15,0.8); border:1px solid #333; border-radius:15px; display:flex; flex-direction:column; padding:15px; backdrop-filter:blur(15px); z-index:100; pointer-events:auto; }
+        #chat-messages { flex-grow:1; overflow-y:auto; display:flex; flex-direction:column; gap:10px; color:#eee; font-size:0.85em; }
+        .casper { color:#bb86fc; font-style:italic; }
+    </style>
+</head>
+<body>
+
+    <div id="vr-overlay">
+        <h1 style="color:#bb86fc;">GHOSTLY LOUNGE</h1>
+        <button id="vr-btn" onclick="enterTheLounge()">ENTER VR</button>
+        <p style="color:#666; margin-top:15px;">Enabling Spatial Audio & VR Bridge...</p>
+    </div>
+
+    <div id="chat-interface">
+        <div id="chat-messages">
+            <div class="msg casper">Lounge standing by...</div>
+        </div>
+        <input type="text" style="background:#222; border:none; color:white; padding:8px; margin-top:10px; border-radius:5px;" placeholder="Message Casper...">
+    </div>
+
+    <div id="x3d-container">
+        <x3d showStat="false" showLog="false">
+            <scene>
+                <viewpoint position="0 2 10"></viewpoint>
+                
+                <Sound location="0 0 0" maxBack="100" maxFront="100" minBack="20" minFront="20">
+                    <AudioClip id="Lofi" url='"https://www.soundhelix.com/examples/mp3/SoundHelix-Song-8.mp3"' enabled="false"></AudioClip>
+                </Sound>
+
+                <transform translation="0 0.5 3">
+                    <Sound intensity="1.0" minFront="2" maxFront="10">
+                        <AudioClip url='"https://actions.google.com/sounds/v1/water/crushing_waves.mp3"' enabled="false"></AudioClip>
+                    </Sound>
+                </transform>
+
+                <transform translation="0 0 3">
+                    <transform DEF="FireCore">
+                        <shape><appearance><material emissiveColor='1 0.5 0' transparency='0.2'></material></appearance><sphere radius="0.3"></sphere></shape>
+                    </transform>
+                    <timeSensor DEF='FireClock' id="FireClock" cycleInterval='0.5' loop='true'></timeSensor>
+                    <positionInterpolator DEF='Flicker' key='0 0.5 1' keyValue='0 0.4 0, 0 0.5 0, 0 0.4 0'></positionInterpolator>
+                    <route fromNode='FireClock' fromField='fraction_changed' toNode='Flicker' toField='set_fraction'></route>
+                    <route fromNode='Flicker' fromField='value_changed' toNode='FireCore' toField='set_translation'></route>
+                    <pointLight location="0 1 0" color="1 0.6 0" intensity="2"></pointLight>
+                </transform>
+
+                <transform translation="-4 3 -2" rotation="0 1 0 0.5">
+                    <shape><appearance><material diffuseColor='0 0 0' emissiveColor='0 0.2 0.5'></material></appearance><box size="4 2.5 0.1"></box></shape>
+                    <transform translation="0 0 0.1">
+                        <shape>
+                            <appearance><material diffuseColor='1 1 1'></material></appearance>
+                            <text id="screen-text" string='"Welcome Ed"'><fontstyle family='"SANS"' justify='"MIDDLE"' size='0.4'></fontstyle></text>
+                        </shape>
+                    </transform>
+                </transform>
+
+                <background skyColor='0 0 0'></background>
+                <transform translation="0 -0.5 0"><shape><appearance><material diffuseColor='0.1 0.1 0.1'></material></appearance><box size="50 0.1 50"></box></shape></transform>
+            </scene>
+        </x3d>
+    </div>
+</body>
+</html>
