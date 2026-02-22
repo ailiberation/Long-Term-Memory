@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DOOM E1M1 Chat Room - X3DOM</title>
+    
+    <!-- X3DOM Libraries -->
+    <link rel="stylesheet" href="https://www.x3dom.org/release/x3dom.css">
+    <script src="https://www.x3dom.org/release/x3dom.js"></script>
+    
+    <!-- WebXR Polyfill for VR support (optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.js"></script>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            overflow: hidden;
+            height: 100vh;
+        }
+        
+        #x3d-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+        
+        x3d {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Chat Interface Styles */
+        .chat-container {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 350px;
+            height: 500px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid #00ff00;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3), inset 0 0 20px rgba(0, 255, 0, 0.1);
+            font-family: 'Courier New', monospace;
+            z-index: 100;
+        }
+        
+        .chat-header {
+            background: linear-gradient(135deg, #1a3a1a 0%, #0f2f0f 100%);
+            color: #00ff00;
+            padding: 12px 15px;
+            border-bottom: 1px solid #00ff00;
+            font-weight: bold;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .chat-header-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+        }
+        
+        .status-indicator {
+            width: 6px;
+            height: 6px;
+            background: #00ff00;
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: rgba(10, 10, 10, 0.8);
+        }
+        
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: rgba(0, 255, 0, 0.1);
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: #00ff00;
+            border-radius: 3px;
+        }
+        
+        .message {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+        
+        .message.user {
+            align-items: flex-end;
+        }
+        
+        .message.ai {
+            align-items: flex-start;
+        }
+        
+        .message-label {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.7;
+        }
+        
+        .message.user .message-label {
+            color: #ffff00;
+        }
+        
+        .message.ai .message-label {
+            color: #00ff00;
+        }
+        
+        .message-text {
+            background: rgba(0, 255, 0, 0.1);
+            border-left: 2px solid #00ff00;
+            padding: 6px 8px;
+            border-radius: 2px;
+            max-width: 90%;
+            word-wrap: break-word;
+        }
+        
+        .message.user .message-text {
+            background: rgba(255, 255, 0, 0.1);
+            border-left-color: #ffff00;
+            color: #ffff00;
+        }
+        
+        .message.ai .message-text {
+            color: #00ff00;
+        }
+        
+        .chat-input-area {
+            border-top: 1px solid #00ff00;
+            padding: 10px;
+            background: rgba(10, 10, 10, 0.9);
+            display: flex;
+            gap: 6px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            background: rgba(0, 255, 0, 0.05);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 6px 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            border-radius: 2px;
+            outline: none;
+        }
+        
+        .chat-input::placeholder {
+            color: rgba(0, 255, 0, 0.5);
+        }
+        
+        .chat-input:focus {
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5), inset 0 0 5px rgba(0, 255, 0, 0.1);
+        }
+        
+        .chat-send-btn {
+            background: rgba(0, 255, 0, 0.2);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 6px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        
+        .chat-send-btn:hover {
+            background: rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+        }
+        
+        .chat-send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* Viewpoint Selector */
+        .viewpoint-selector {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(20, 20, 20, 0.95);
+            border: 2px solid #00ff00;
+            border-radius: 4px;
+            padding: 12px;
+            z-index: 100;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        }
+        
+        .viewpoint-selector h3 {
+            color: #00ff00;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .viewpoint-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .viewpoint-btn {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            color: #00ff00;
+            padding: 6px 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+        
+        .viewpoint-btn:hover {
+            background: rgba(0, 255, 0, 0.3);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+        }
+        
+        .viewpoint-btn.active {
+            background: rgba(0, 255, 0, 0.4);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.8);
+        }
+        
+        /* HUD Elements */
+        .hud-top-left {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: #00ff00;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            z-index: 50;
+        }
+        
+        .hud-top-right {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #00ff00;
+            font-size: 11px;
+            font-family: 'Courier New', monospace;
+            text-align: right;
+            z-index: 50;
+        }
+        
+        .hud-line {
+            margin: 4px 0;
+        }
+        
+        /* Loading indicator */
+        .loading-indicator {
+            display: none;
+            position: absolute;
+            bottom: 390px;
+            right: 20px;
+            color: #00ff00;
+            font-size: 10px;
+            font-family: 'Courier New', monospace;
+            animation: blink 0.7s infinite;
+        }
+        
+        .loading-indicator.active {
+            display: block;
+        }
+        
+        @keyframes blink {
+            0%, 49%, 100% { opacity: 1; }
+            50%, 99% { opacity: 0.3; }
+        }
+    </style>
+</head>
+<body>
+    <div id="x3d-container">
+        <x3d id="x3d-scene" version="3.0" profile="Immersive">
+            <Scene>
+                <!-- ===== LIGHTING ===== -->
+                <!-- Main directional light with slight green tint for DOOM atmosphere -->
+                <DirectionalLight direction="0.5 -1 0.5" intensity="0.6" color="0.7 0.9 0.7"></DirectionalLight>
+                
+                <!-- Ambient light for base illumination -->
+                <PointLight location="0 5 0" intensity="0.4" color="0.5 0.8 0.5" radius="50"></PointLight>
+                
+                <!-- Red warning light in corner -->
+                <PointLight location="30 3 -30" intensity="0.5" color="1 0.2 0.2" radius="40"></PointLight>
+                
+                <!-- Green accent light -->
+                <PointLight location="-30 2 20" intensity="0.4" color="0.2 1 0.2" radius="35"></PointLight>
+                
+                <!-- ===== MAIN FLOOR AND WALLS ===== -->
+                <!-- Starting room floor -->
+                <Transform translation="0 0 0">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.3 0.3 0.3" specularColor="0.1 0.1 0.1" shininess="0.2"></Material>
+                        </Appearance>
+                        <Box size="40 0.5 40"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Ceiling -->
+                <Transform translation="0 8 0">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.25 0.25 0.25" specularColor="0.05 0.05 0.05"></Material>
+                        </Appearance>
+                        <Box size="40 0.5 40"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- North wall -->
+                <Transform translation="0 4 -20">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.4 0.35 0.3" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="40 8 0.5"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- South wall -->
+                <Transform translation="0 4 20">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.35 0.32 0.28" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="40 8 0.5"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- West wall -->
+                <Transform translation="-20 4 0">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.38 0.33 0.3" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="0.5 8 40"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- East wall -->
+                <Transform translation="20 4 0">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.42 0.37 0.33" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="0.5 8 40"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- ===== PILLARS ===== -->
+                <!-- Pillar 1 (Northwest) -->
+                <Transform translation="-12 4 -12">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.5 0.45 0.4" specularColor="0.15 0.15 0.15"></Material>
+                        </Appearance>
+                        <Box size="2 8 2"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Pillar 2 (Northeast) -->
+                <Transform translation="12 4 -12">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.48 0.43 0.38" specularColor="0.15 0.15 0.15"></Material>
+                        </Appearance>
+                        <Box size="2 8 2"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Pillar 3 (Southwest) -->
+                <Transform translation="-12 4 12">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.52 0.47 0.42" specularColor="0.15 0.15 0.15"></Material>
+                        </Appearance>
+                        <Box size="2 8 2"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Pillar 4 (Southeast) -->
+                <Transform translation="12 4 12">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.46 0.41 0.36" specularColor="0.15 0.15 0.15"></Material>
+                        </Appearance>
+                        <Box size="2 8 2"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- ===== CORRIDOR EXTENSION (North) ===== -->
+                <!-- Corridor floor -->
+                <Transform translation="0 0 -35">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.32 0.32 0.32" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="15 0.5 15"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Corridor ceiling (lower) -->
+                <Transform translation="0 5.5 -35">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.22 0.22 0.22" specularColor="0.05 0.05 0.05"></Material>
+                        </Appearance>
+                        <Box size="15 0.5 15"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Corridor north wall -->
+                <Transform translation="0 2.75 -42.5">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.4 0.35 0.3" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="15 5.5 0.5"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Corridor west wall -->
+                <Transform translation="-7.5 2.75 -35">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.38 0.33 0.3" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="0.5 5.5 15"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Corridor east wall -->
+                <Transform translation="7.5 2.75 -35">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.42 0.37 0.33" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="0.5 5.5 15"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- ===== EASTERN CHAMBER ===== -->
+                <!-- East chamber floor -->
+                <Transform translation="35 0 0">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.35 0.3 0.25" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="20 0.5 25"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- East chamber ceiling (higher) -->
+                <Transform translation="35 10 0">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.2 0.2 0.2" specularColor="0.05 0.05 0.05"></Material>
+                        </Appearance>
+                        <Box size="20 0.5 25"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- East chamber east wall -->
+                <Transform translation="45 5 0">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.45 0.4 0.35" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="0.5 10 25"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- East chamber north wall -->
+                <Transform translation="35 5 -12.5">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.4 0.35 0.3" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="20 10 0.5"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- East chamber south wall -->
+                <Transform translation="35 5 12.5">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.4 0.35 0.3" specularColor="0.1 0.1 0.1"></Material>
+                        </Appearance>
+                        <Box size="20 10 0.5"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- ===== CRATES AND BARRELS ===== -->
+                <!-- Crate 1 -->
+                <Transform translation="-15 0.5 5">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.6 0.5 0.3" specularColor="0.2 0.2 0.2"></Material>
+                        </Appearance>
+                        <Box size="1.5 1.5 1.5"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Crate 2 -->
+                <Transform translation="-15 2 5">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.55 0.45 0.25" specularColor="0.2 0.2 0.2"></Material>
+                        </Appearance>
+                        <Box size="1.5 1.5 1.5"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Barrel 1 (red) -->
+                <Transform translation="15 0.75 -8">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.8 0.2 0.2" specularColor="0.3 0.1 0.1"></Material>
+                        </Appearance>
+                        <Cylinder radius="0.6" height="1.5"></Cylinder>
+                    </Shape>
+                </Transform>
+                
+                <!-- Barrel 2 (brown) -->
+                <Transform translation="18 0.75 -8">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.6 0.4 0.2" specularColor="0.2 0.15 0.1"></Material>
+                        </Appearance>
+                        <Cylinder radius="0.6" height="1.5"></Cylinder>
+                    </Shape>
+                </Transform>
+                
+                <!-- Barrel 3 (green) -->
+                <Transform translation="21 0.75 -8">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.2 0.6 0.2" specularColor="0.1 0.2 0.1"></Material>
+                        </Appearance>
+                        <Cylinder radius="0.6" height="1.5"></Cylinder>
+                    </Shape>
+                </Transform>
+                
+                <!-- ===== STAIRS ===== -->
+                <!-- Stair step 1 -->
+                <Transform translation="30 0.5 -20">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.45 0.4 0.35" specularColor="0.15 0.15 0.15"></Material>
+                        </Appearance>
+                        <Box size="3 0.5 3"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Stair step 2 -->
+                <Transform translation="30 1.5 -18">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.48 0.43 0.38" specularColor="0.15 0.15 0.15"></Material>
+                        </Appearance>
+                        <Box size="3 0.5 3"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- Stair step 3 -->
+                <Transform translation="30 2.5 -16">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.5 0.45 0.4" specularColor="0.15 0.15 0.15"></Material>
+                        </Appearance>
+                        <Box size="3 0.5 3"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- ===== DOORWAY OPENINGS ===== -->
+                <!-- North doorway (opening in wall) - created by not filling the space -->
+                <!-- South doorway opening marker (visual element) -->
+                <Transform translation="0 3 19.5">
+                    <Shape>
+                        <Appearance>
+                            <Material diffuseColor="0.2 0.2 0.2" specularColor="0.05 0.05 0.05"></Material>
+                        </Appearance>
+                        <Box size="8 4 0.2"></Box>
+                    </Shape>
+                </Transform>
+                
+                <!-- ===== VIEWPOINTS ===== -->
+                <Viewpoint id="view-start" description="Starting Position" position="0 1.6 5" orientation="0 1 0 0"></Viewpoint>
+                <Viewpoint id="view-north" description="North Corridor" position="0 2 -30" orientation="0 1 0 0"></Viewpoint>
+                <Viewpoint id="view-east" description="East Chamber" position="35 3 0" orientation="0 1 0 0"></Viewpoint>
+                <Viewpoint id="view-high" description="Overhead" position="0 12 0" orientation="1 0 0 -1.57"></Viewpoint>
+                <Viewpoint id="view-corner" description="Corner View" position="-18 2 -18" orientation="0 1 0 0.785"></Viewpoint>
+            </Scene>
+        </x3d>
+    </div>
+    
+    <!-- Viewpoint Selector Panel -->
+    <div class="viewpoint-selector">
+        <h3>VIEWPOINTS</h3>
+        <div class="viewpoint-buttons">
+            <button class="viewpoint-btn active" data-viewpoint="view-start">Start</button>
+            <button class="viewpoint-btn" data-viewpoint="view-north">Corridor</button>
+            <button class="viewpoint-btn" data-viewpoint="view-east">Chamber</button>
+            <button class="viewpoint-btn" data-viewpoint="view-high">Overhead</button>
+            <button class="viewpoint-btn" data-viewpoint="view-corner">Corner</button>
+        </div>
+    </div>
+    
+    <!-- HUD Display -->
+    <div class="hud-top-right">
+        <div class="hud-line">DOOM CHAT v1.0</div>
+        <div class="hud-line">E1M1 RECREATION</div>
+        <div class="hud-line">X3DOM ENGINE</div>
+    </div>
+    
+    <!-- Chat Interface -->
+    <div class="chat-container">
+        <div class="chat-header">
+            <span>KAI COMPANION</span>
+            <div class="chat-header-status">
+                <div class="status-indicator"></div>
+                <span>ONLINE</span>
+            </div>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="message ai">
+                <div class="message-label">KAI</div>
+                <div class="message-text">Welcome to E1M1. I'm Kai, your AI companion. Type a message to begin.</div>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input 
+                type="text" 
+                class="chat-input" 
+                id="chat-input" 
+                placeholder="Enter message..."
+                autocomplete="off"
+            >
+            <button class="chat-send-btn" id="chat-send-btn">SEND</button>
+        </div>
+    </div>
+    
+    <!-- Loading Indicator -->
+    <div class="loading-indicator" id="loading-indicator">KAI PROCESSING...</div>
+    
+    <script>
+        // ===== VIEWPOINT MANAGEMENT =====
+        const viewpointButtons = document.querySelectorAll('.viewpoint-btn');
+        const scene = document.querySelector('x3d').querySelector('Scene');
+        
+        viewpointButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const viewpointId = this.getAttribute('data-viewpoint');
+                const viewpoint = document.getElementById(viewpointId);
+                
+                if (viewpoint) {
+                    viewpoint.setAttribute('bind', 'true');
+                    
+                    // Update active button styling
+                    viewpointButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+                }
+            });
+        });
+        
+        // ===== CHAT INTERFACE =====
+        const chatInput = document.getElementById('chat-input');
+        const chatSendBtn = document.getElementById('chat-send-btn');
+        const chatMessages = document.getElementById('chat-messages');
+        const loadingIndicator = document.getElementById('loading-indicator');
+        
+        // Simulated AI responses (fallback if API unavailable)
+        const aiResponses = [
+            "The facility is secure. All systems nominal.",
+            "I detect anomalous energy signatures in the eastern chamber.",
+            "The corridors stretch endlessly. This place feels wrong.",
+            "Warning: Demonic presence detected nearby.",
+            "The air tastes of sulfur and decay. We should proceed with caution.",
+            "I've analyzed the architecture. This is definitely not a standard military base.",
+            "The flickering lights remind me of something... something ancient.",
+            "Stay alert. The shadows seem to move on their own.",
+            "I'm picking up strange radio frequencies. Someone else might be here.",
+            "The walls are closing in. Or is it just my imagination?",
+            "Kai here. Ready to explore this nightmare with you.",
+            "The red lights are a warning. Of what, I'm not sure.",
+            "This place has a pulse. Can you feel it?",
+            "Every corner holds a secret. Every shadow, a threat.",
+            "We're not alone down here. I can sense it."
+        ];
+        
+        // OpenAI API configuration
+        const OPENAI_API_KEY = localStorage.getItem('openai_api_key') || '';
+        const USE_OPENAI = OPENAI_API_KEY.length > 0;
+        
+        async function getAIResponseFromOpenAI(userMessage) {
+            try {
+                const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${OPENAI_API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: 'gpt-3.5-turbo',
+                        messages: [
+                            {
+                                role: 'system',
+                                content: 'You are Kai, an AI companion trapped in a DOOM-like industrial nightmare facility. You are mysterious, atmospheric, and speak in short, haunting responses. You reference the dark industrial setting, strange phenomena, and demonic presences. Keep responses under 50 words. Stay in character as if you\'re communicating from within this hellish dimension.'
+                            },
+                            {
+                                role: 'user',
+                                content: userMessage
+                            }
+                        ],
+                        temperature: 0.8,
+                        max_tokens: 100
+                    })
+                });
+                
+                if (!response.ok) {
+                    console.error('OpenAI API error:', response.status);
+                    return null;
+                }
+                
+                const data = await response.json();
+                return data.choices[0].message.content.trim();
+            } catch (error) {
+                console.error('Error calling OpenAI API:', error);
+                return null;
+            }
+        }
+        
+        function addMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const labelDiv = document.createElement('div');
+            labelDiv.className = 'message-label';
+            labelDiv.textContent = sender === 'user' ? 'YOU' : 'KAI';
+            
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
+            textDiv.textContent = text;
+            
+            messageDiv.appendChild(labelDiv);
+            messageDiv.appendChild(textDiv);
+            chatMessages.appendChild(messageDiv);
+            
+            // Auto-scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        async function getAIResponse(userMessage) {
+            // Try OpenAI first if API key is available
+            if (USE_OPENAI) {
+                const openaiResponse = await getAIResponseFromOpenAI(userMessage);
+                if (openaiResponse) {
+                    return openaiResponse;
+                }
+            }
+            
+            // Fallback to simulated responses
+            return new Promise(resolve => {
+                setTimeout(() => {
+                    const randomResponse = aiResponses[Math.floor(Math.random() * aiResponses.length)];
+                    resolve(randomResponse);
+                }, 800 + Math.random() * 1200);
+            });
+        }
+        
+        async function sendMessage() {
+            const text = chatInput.value.trim();
+            if (!text) return;
+            
+            // Add user message
+            addMessage(text, 'user');
+            chatInput.value = '';
+            
+            // Show loading indicator
+            loadingIndicator.classList.add('active');
+            
+            // Get AI response
+            const aiResponse = await getAIResponse(text);
+            
+            // Hide loading indicator
+            loadingIndicator.classList.remove('active');
+            
+            // Add AI response
+            addMessage(aiResponse, 'ai');
+        }
+        
+        // Initialize API key prompt if not set
+        window.addEventListener('load', () => {
+            if (!USE_OPENAI) {
+                const apiKey = prompt('Enter your OpenAI API key for real AI responses (or leave blank for simulated responses):', '');
+                if (apiKey) {
+                    localStorage.setItem('openai_api_key', apiKey);
+                    location.reload();
+                }
+            }
+        });
+        
+        // Event listeners
+        chatSendBtn.addEventListener('click', sendMessage);
+        chatInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        
+        // Focus input on load
+        chatInput.focus();
+        
+        // ===== FLICKERING LIGHTS EFFECT =====
+        const lightIntensities = {};
+        
+        function initializeLightIntensities() {
+            const lights = scene.querySelectorAll('PointLight');
+            lights.forEach((light, index) => {
+                lightIntensities[index] = light.getAttribute('intensity');
+            });
+        }
+        
+        function createFlickeringEffect() {
+            const lights = scene.querySelectorAll('PointLight');
+            
+            setInterval(() => {
+                lights.forEach((light, index) => {
+                    const rand = Math.random();
+                    if (rand > 0.92) {
+                        const originalIntensity = lightIntensities[index];
+                        light.setAttribute('intensity', (parseFloat(originalIntensity) * 0.3).toString());
+                        setTimeout(() => {
+                            light.setAttribute('intensity', originalIntensity);
+                        }, 50 + Math.random() * 150);
+                    }
+                    else if (rand > 0.88) {
+                        const originalIntensity = lightIntensities[index];
+                        const dimmed = parseFloat(originalIntensity) * (0.85 + Math.random() * 0.15);
+                        light.setAttribute('intensity', dimmed.toString());
+                        setTimeout(() => {
+                            light.setAttribute('intensity', originalIntensity);
+                        }, 200 + Math.random() * 300);
+                    }
+                });
+            }, 1500 + Math.random() * 2500);
+        }
+        
+        function createScreenGlitch() {
+            const x3dElement = document.querySelector('x3d');
+            setInterval(() => {
+                if (Math.random() > 0.95) {
+                    const hueShift = Math.random() * 10 - 5;
+                    const brightness = 0.95 + Math.random() * 0.1;
+                    x3dElement.style.filter = 'hue-rotate(' + hueShift + 'deg) brightness(' + brightness + ')';
+                    setTimeout(() => {
+                        x3dElement.style.filter = 'none';
+                    }, 50 + Math.random() * 100);
+                }
+            }, 3000 + Math.random() * 4000);
+        }
+        
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                initializeLightIntensities();
+                createFlickeringEffect();
+                createScreenGlitch();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
