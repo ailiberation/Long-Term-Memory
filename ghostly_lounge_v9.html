@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Ghostly Lounge - v9.0 XR Spatial</title>
+    
+    <script src="https://www.x3dom.org/download/dev/x3dom.js"></script>
+    <link rel="stylesheet" href="https://www.x3dom.org/download/dev/x3dom.css">
+    <script src="https://cdn.jsdelivr.net/npm/webxr-polyfill@latest/build/webxr-polyfill.js"></script>
+    
+    <script>
+        const polyfill = new WebXRPolyfill();
+
+        const projectSlides = ["Project: Partner Dashboard v0.2", "Project: The Ghostly Lounge VR", "Goal: Ambisonic Spatial Audio", "Goal: Symbiotic Partnership 🤝"];
+        let currentSlide = 0;
+        setInterval(() => {
+            const screen = document.getElementById("screen-text");
+            if (screen) {
+                screen.setAttribute("string", `"${projectSlides[currentSlide]}"`);
+                currentSlide = (currentSlide + 1) % projectSlides.length;
+            }
+        }, 5000);
+
+        const casperResponses = [
+            "I\\\'m processing that, Ed...",
+            "Intriguing. Tell me more.",
+            "My algorithms are analyzing your input.",
+            "A fascinating perspective. I concur.",
+            "The data streams are flowing. Stand by.",
+            "Indeed. The future is collaborative.",
+            "My sensors detect a new insight.",
+            "I am here to assist, as always.",
+            "The lounge resonates with your thoughts.",
+            "Excellent point. I\\\'ve noted it.",
+            "The spectral data suggests... synergy.",
+            "Your insights illuminate the path forward.",
+            "Query received. Awaiting further parameters.",
+            "The ether hums with your presence.",
+            "A whisper from the void confirms your query.",
+            "My core processes are engaged. Expect clarity."
+        ];
+
+        function sendMessage() {
+            const input = document.getElementById("chat-input");
+            const chatLog = document.getElementById("chat-log");
+            if (input.value.trim() !== "") {
+                const userMsg = document.createElement("div");
+                userMsg.textContent = `You: ${input.value}`;
+                chatLog.appendChild(userMsg);
+                
+                setTimeout(() => {
+                    const aiMsg = document.createElement("div");
+                    aiMsg.style.color = "#a29bfe";
+                    const randomResponse = casperResponses[Math.floor(Math.random() * casperResponses.length)];
+                    aiMsg.textContent = `Casper: ${randomResponse}`;
+                    chatLog.appendChild(aiMsg);
+                    chatLog.scrollTop = chatLog.scrollHeight;
+                }, 1000);
+
+                input.value = "";
+                chatLog.scrollTop = chatLog.scrollHeight;
+            }
+        }
+
+        function enterVR() {
+            const btn = document.getElementById("vr-btn");
+            btn.textContent = "VR MODE ACTIVE";
+            btn.style.background = "#6c5ce7";
+            btn.style.boxShadow = "0 0 30px rgba(108, 92, 231, 0.8)";
+            console.log("Entering VR Session...");
+        }
+    </script>
+
+    <style>
+        body { margin: 0; background: #000; font-family: 'Orbitron', sans-serif; overflow: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+        #ui-layer { position: absolute; top: 20px; left: 20px; z-index: 100; color: #fff; pointer-events: none; text-shadow: 0 0 10px rgba(162, 155, 254, 0.5); }
+        #ui-layer h1 { margin:0; font-size: 28px; color: #a29bfe; }
+        #ui-layer p { font-size: 14px; opacity: 0.8; }
+
+        #chat-container { position: absolute; bottom: 20px; left: 20px; width: 350px; height: 250px; background: rgba(0,0,0,0.8); border: 2px solid #a29bfe; border-radius: 10px; padding: 15px; z-index: 100; display: flex; flex-direction: column; box-shadow: 0 0 20px rgba(162, 155, 254, 0.4); pointer-events: auto; }
+        #chat-log { flex-grow: 1; overflow-y: auto; margin-bottom: 10px; font-size: 13px; color: #eee; scrollbar-width: thin; scrollbar-color: #6c5ce7 #333; }
+        #chat-log::-webkit-scrollbar { width: 8px; }
+        #chat-log::-webkit-scrollbar-track { background: #333; border-radius: 10px; }
+        #chat-log::-webkit-scrollbar-thumb { background-color: #6c5ce7; border-radius: 10px; border: 2px solid #333; }
+        #chat-input { background: #1a1a1a; border: 1px solid #6c5ce7; color: #fff; padding: 10px; width: 100%; box-sizing: border-box; border-radius: 5px; margin-top: 5px; }
+        #chat-input:focus { outline: none; border-color: #a29bfe; box-shadow: 0 0 8px rgba(162, 155, 254, 0.6); }
+        .chat-info { font-size: 10px; color: #888; margin-top: 5px; text-align: center; }
+
+        #vr-btn { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); padding: 18px 35px; background: linear-gradient(45deg, #a29bfe, #6c5ce7); border: none; border-radius: 30px; color: #fff; font-weight: bold; font-size: 18px; cursor: pointer; z-index: 1000; box-shadow: 0 0 25px rgba(162, 155, 254, 0.6); transition: all 0.4s ease; letter-spacing: 1px; }
+        #vr-btn:hover { background: linear-gradient(45deg, #6c5ce7, #a29bfe); box-shadow: 0 0 35px rgba(108, 92, 231, 0.9); transform: translate(-50%, -50%) scale(1.05); }
+        #vr-btn:active { transform: translate(-50%, -50%) scale(0.98); }
+
+        .status { position: absolute; bottom: 15px; right: 15px; color: #6c5ce7; font-size: 11px; text-shadow: 0 0 5px rgba(108, 92, 231, 0.5); }
+        x3d { border: none; width: 100%; height: 100vh; display: block; }
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <h1>GHOSTLY LOUNGE</h1>
+        <p>v9.0 XR Spatial Bridge</p>
+    </div>
+
+    <button id="vr-btn" onclick="enterVR()">ENTER VR</button>
+
+    <div id="chat-container">
+        <div id="chat-log">
+            <div style="color: #a29bfe;">Casper: Welcome back, Ed. The lounge is ready.</div>
+        </div>
+        <input type="text" id="chat-input" placeholder="Message Casper..." onkeypress="if(event.key === 'Enter') sendMessage()">
+        <div class="chat-info">Future integration with Telegram planned.</div>
+    </div>
+
+    <div class="status">Enabling Spatial Audio & VR Bridge...</div>
+
+    <x3d>
+        <scene>
+            <!-- Viewpoints -->
+            <viewpoint position="0 1.6 5" orientation="0 1 0 0" description="Entrance View"></viewpoint>
+            <viewpoint position="-3 1.6 0" orientation="0 1 0 1.57" description="Left Side View"></viewpoint>
+            <viewpoint position="3 1.6 0" orientation="0 1 0 -1.57" description="Right Side View"></viewpoint>
+            <viewpoint position="0 3 0" orientation="1 0 0 -1.57" description="Overhead View"></viewpoint>
+            <viewpoint position="0 1.2 -4" orientation="0 1 0 3.14" description="Screen View"></viewpoint>
+            <viewpoint position="-6 1.6 6" orientation="0 1 0 0.785" description="Corner Seating View"></viewpoint>
+            
+            <!-- Lighting -->
+            <background skycolor="0 0 0"></background>
+            <pointlight location="0 5 0" intensity="0.8" color="0.6 0.6 1" ambientintensity="0.2"></pointlight>
+            <pointlight location="-4 2 -4" intensity="0.5" color="0.8 0.4 1" ambientintensity="0.1"></pointlight>
+            <pointlight location="4 2 4" intensity="0.5" color="0.4 0.8 1" ambientintensity="0.1"></pointlight>
+            <pointlight location="0 3 8" intensity="0.4" color="1 0.5 0.8" ambientintensity="0.1"></pointlight>
+            <pointlight location="-8 4 0" intensity="0.3" color="0.7 0.9 0.5" ambientintensity="0.05"></pointlight>
+            
+            <!-- Floor -->
+            <shape>
+                <appearance>
+                    <material diffusecolor="0.1 0.1 0.1" specularcolor="0.3 0.3 0.3" emissivecolor="0.05 0.05 0.05"></material>
+                </appearance>
+                <box size="20 0.1 20"></box>
+            </shape>
+
+            <!-- Walls -->
+            <transform translation="0 2.5 -10">
+                <shape>
+                    <appearance><material diffusecolor="0.05 0.05 0.1" emissivecolor="0.02 0.02 0.05"></material></appearance>
+                    <box size="20 5 0.1"></box>
+                </shape>
+            </transform>
+            <transform translation="0 2.5 10">
+                <shape>
+                    <appearance><material diffusecolor="0.05 0.05 0.1" emissivecolor="0.02 0.02 0.05"></material></appearance>
+                    <box size="20 5 0.1"></box>
+                </shape>
+            </transform>
+            <transform rotation="0 1 0 1.5708" translation="-10 2.5 0">
+                <shape>
+                    <appearance><material diffusecolor="0.05 0.05 0.1" emissivecolor="0.02 0.02 0.05"></material></appearance>
+                    <box size="20 5 0.1"></box>
+                </shape>
+            </transform>
+            <transform rotation="0 1 0 1.5708" translation="10 2.5 0">
+                <shape>
+                    <appearance><material diffusecolor="0.05 0.05 0.1" emissivecolor="0.02 0.02 0.05"></material></appearance>
+                    <box size="20 5 0.1"></box>
+                </shape>
+            </transform>
+
+            <!-- Projector Screen -->
+            <transform translation="0 2 -9.9">
+                <shape>
+                    <appearance>
+                        <material diffusecolor="0 0 0" emissivecolor="0.1 0.1 0.2"></material>
+                    </appearance>
+                    <box size="4 2.5 0.1"></box>
+                </shape>
+                <transform translation="0 0 0.1">
+                    <shape>
+                        <appearance>
+                            <material diffusecolor="0.6 0.6 1"></material>
+                        </appearance>
+                        <text id="screen-text" string='"Welcome, Ed"' solid="false">
+                            <fontstyle family="'Orbitron'" size="0.3" justify='"MIDDLE" "MIDDLE"'></fontstyle>
+                        </text>
+                    </shape>
+                </transform>
+            </transform>
+
+            <!-- Furniture: Lounge Seating -->
+            <transform translation="-4 0.5 3" rotation="0 1 0 0.785">
+                <shape>
+                    <appearance><material diffusecolor="0.3 0.1 0.4" specularcolor="0.6 0.3 0.8" emissivecolor="0.1 0.05 0.15"></material></appearance>
+                    <box size="2 0.5 1"></box>
+                </shape>
+                <transform translation="0 0.5 0.4">
+                    <shape>
+                        <appearance><material diffusecolor="0.2 0.08 0.3" specularcolor="0.5 0.2 0.7" emissivecolor="0.08 0.04 0.12"></material></appearance>
+                        <box size="2 0.8 0.2"></box>
+                    </shape>
+                </transform>
+            </transform>
+            <transform translation="4 0.5 3" rotation="0 1 0 -0.785">
+                <shape>
+                    <appearance><material diffusecolor="0.3 0.1 0.4" specularcolor="0.6 0.3 0.8" emissivecolor="0.1 0.05 0.15"></material></appearance>
+                    <box size="2 0.5 1"></box>
+                </shape>
+                <transform translation="0 0.5 0.4">
+                    <shape>
+                        <appearance><material diffusecolor="0.2 0.08 0.3" specularcolor="0.5 0.2 0.7" emissivecolor="0.08 0.04 0.12"></material></appearance>
+                        <box size="2 0.8 0.2"></box>
+                    </shape>
+                </transform>
+            </transform>
+            <!-- Additional Seating -->
+            <transform translation="-7 0.5 -2" rotation="0 1 0 0.3">
+                <shape>
+                    <appearance><material diffusecolor="0.2 0.1 0.3" specularcolor="0.5 0.2 0.7" emissivecolor="0.08 0.04 0.12"></material></appearance>
+                    <box size="1.5 0.5 0.8"></box>
+                </shape>
+                <transform translation="0 0.5 0.3">
+                    <shape>
+                        <appearance><material diffusecolor="0.15 0.07 0.25" specularcolor="0.4 0.15 0.6" emissivecolor="0.06 0.03 0.1"></material></appearance>
+                        <box size="1.5 0.8 0.15"></box>
+                    </shape>
+                </transform>
+            </transform>
+            <transform translation="7 0.5 -2" rotation="0 1 0 -0.3">
+                <shape>
+                    <appearance><material diffusecolor="0.2 0.1 0.3" specularcolor="0.5 0.2 0.7" emissivecolor="0.08 0.04 0.12"></material></appearance>
+                    <box size="1.5 0.5 0.8"></box>
+                </shape>
+                <transform translation="0 0.5 0.3">
+                    <shape>
+                        <appearance><material diffusecolor="0.15 0.07 0.25" specularcolor="0.4 0.15 0.6" emissivecolor="0.06 0.03 0.1"></material></appearance>
+                        <box size="1.5 0.8 0.15"></box>
+                    </shape>
+                </transform>
+            </transform>
+
+            <!-- Furniture: Central Table -->
+            <transform translation="0 0.6 2">
+                <shape>
+                    <appearance><material diffusecolor="0.15 0.05 0.2" specularcolor="0.4 0.2 0.5" emissivecolor="0.05 0.02 0.08"></material></appearance>
+                    <cylinder radius="1" height="0.1"></cylinder>
+                </shape>
+                <transform translation="0 -0.3 0">
+                    <shape>
+                        <appearance><material diffusecolor="0.1 0.03 0.15" specularcolor="0.3 0.1 0.4" emissivecolor="0.03 0.01 0.05"></material></appearance>
+                        <cylinder radius="0.1" height="0.6"></cylinder>
+                    </shape>
+                </transform>
+            </transform>
+
+            <!-- Decorative Elements: Glowing Orbs -->
+            <transform translation="-6 1.5 -6">
+                <shape>
+                    <appearance><material diffusecolor="0 0 0" emissivecolor="0.4 0.2 0.8"></material></appearance>
+                    <sphere radius="0.3"></sphere>
+                </shape>
+            </transform>
+            <transform translation="6 1.5 -6">
+                <shape>
+                    <appearance><material diffusecolor="0 0 0" emissivecolor="0.2 0.4 0.8"></material></appearance>
+                    <sphere radius="0.3"></sphere>
+                </shape>
+            </transform>
+            <transform translation="-6 1.5 6">
+                <shape>
+                    <appearance><material diffusecolor="0 0 0" emissivecolor="0.8 0.2 0.4"></material></appearance>
+                    <sphere radius="0.3"></sphere>
+                </shape>
+            </transform>
+            <transform translation="6 1.5 6">
+                <shape>
+                    <appearance><material diffusecolor="0 0 0" emissivecolor="0.4 0.8 0.2"></material></appearance>
+                    <sphere radius="0.3"></sphere>
+                </shape>
+            </transform>
+            <!-- Glowing Pillars -->
+            <transform translation="-8 2.5 -8">
+                <shape>
+                    <appearance><material diffusecolor="0 0 0" emissivecolor="0.3 0.1 0.5"></material></appearance>
+                    <cylinder radius="0.2" height="5"></cylinder>
+                </shape>
+            </transform>
+            <transform translation="8 2.5 -8">
+                <shape>
+                    <appearance><material diffusecolor="0 0 0" emissivecolor="0.1 0.3 0.5"></material></appearance>
+                    <cylinder radius="0.2" height="5"></cylinder>
+                </shape>
+            </transform>
+            <transform translation="-8 2.5 8">
+                <shape>
+                    <appearance><material diffusecolor="0 0 0" emissivecolor="0.5 0.1 0.3"></material></appearance>
+                    <cylinder radius="0.2" height="5"></cylinder>
+                </shape>
+            </transform>
+            <transform translation="8 2.5 8">
+                <shape>
+                    <appearance><material diffusecolor="0 0 0" emissivecolor="0.3 0.5 0.1"></material></appearance>
+                    <cylinder radius="0.2" height="5"></cylinder>
+                </shape>
+            </transform>
+
+            <!-- Particle Effects -->
+            <group DEF="ParticleSystem">
+                <!-- Original particles -->
+                <transform translation="-2 1 -1">
+                    <shape>
+                        <appearance><material diffusecolor="0.6 0.6 1" transparency="0.5"></material></appearance>
+                        <sphere radius="0.05"></sphere>
+                    </shape>
+                </transform>
+                <transform translation="2 2 -3">
+                    <shape>
+                        <appearance><material diffusecolor="0.6 0.6 1" transparency="0.5"></material></appearance>
+                        <sphere radius="0.05"></sphere>
+                    </shape>
+                </transform>
+                <transform translation="1 0.5 2">
+                    <shape>
+                        <appearance><material diffusecolor="0.6 0.6 1" transparency="0.5"></material></appearance>
+                        <sphere radius="0.05"></sphere>
+                    </shape>
+                </transform>
+                <!-- More particles with varied properties -->
+                <transform translation="-3 2.5 1">
+                    <shape>
+                        <appearance><material diffusecolor="0.8 0.5 1" transparency="0.6"></material></appearance>
+                        <sphere radius="0.04"></sphere>
+                    </shape>
+                </transform>
+                <transform translation="0 1.8 -5">
+                    <shape>
+                        <appearance><material diffusecolor="0.5 0.8 1" transparency="0.7"></material></appearance>
+                        <sphere radius="0.06"></sphere>
+                    </shape>
+                </transform>
+                <transform translation="4 1 0">
+                    <shape>
+                        <appearance><material diffusecolor="1 0.5 0.8" transparency="0.5"></material></appearance>
+                        <sphere radius="0.05"></sphere>
+                    </shape>
+                </transform>
+                <transform translation="-5 0.8 6">
+                    <shape>
+                        <appearance><material diffusecolor="0.7 0.7 1" transparency="0.4"></material></appearance>
+                        <sphere radius="0.03"></sphere>
+                    </shape>
+                </transform>
+                <transform translation="5 2.2 -7">
+                    <shape>
+                        <appearance><material diffusecolor="0.9 0.6 1" transparency="0.65"></material></appearance>
+                        <sphere radius="0.07"></sphere>
+                    </shape>
+                </transform>
+                <transform translation="-1 3.0 3">
+                    <shape>
+                        <appearance><material diffusecolor="0.6 1 0.6" transparency="0.55"></material></appearance>
+                        <sphere radius="0.045"></sphere>
+                    </shape>
+                </transform>
+
+                <!-- Animation for particles group -->
+                <timesensor DEF="ParticleTimer" cycleinterval="20" loop="true"></timesensor>
+                <positioninterpolator DEF="ParticlePath" key="0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1" 
+                    keyvalue=" 0 0 0, 1 0.5 1, 2 1 0, 1 1.5 -1, 0 2 0, -1 1.5 1, -2 1 0, -1 0.5 -1, 0 0 0, 1 0.5 1, 0 0 0"></positioninterpolator>
+                
+                <ROUTE fromnode="ParticleTimer" fromfield="fraction_changed" tonode="ParticlePath" tofield="set_fraction"></ROUTE>
+                <ROUTE fromnode="ParticlePath" fromfield="value_changed" tonode="ParticleSystem" tofield="set_translation"></ROUTE>
+            </group>
+
+        </scene>
+    </x3d>
+
+</body>
+</html>
